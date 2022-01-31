@@ -1,0 +1,228 @@
+Public nSetRng As Integer
+Sub DR()
+Application.ScreenUpdating = False
+Application.EnableEvents = False
+ActiveSheet.DisplayPageBreaks = False
+Application.DisplayStatusBar = False
+Application.Calculation = xlManual
+Application.CutCopyMode = False
+Application.DisplayAlerts = False
+End Sub
+Sub DS()
+Dim LastRow As Integer
+Dim i As Integer
+Dim arr As Variant
+
+nSetRng = 24
+LastRow = Sheets("Data1").Cells(Rows.Count, "B").End(xlUp).Row
+
+'arr = Array(8, 12, 13, 14, 15, 16)
+arr = Array(8, 9, 17, 18, 19, 20, 21, 24)
+i = 6
+'Изменим форматирование столбцов
+Do While i <= 24
+    If (IsError(Application.Match(i, arr, 0)) And Sheets("Data1").Cells(Rows.Count, i).End(xlUp).Row <> 1) Then
+        Sheets("Data1").Range(Sheets("Data1").Cells(2, i), Sheets("Data1").Cells(LastRow, i)).TextToColumns _
+        Destination:=Sheets("Data1").Range(Sheets("Data1").Cells(2, i), Sheets("Data1").Cells(LastRow, i)), DataType:=xlFixedWidth, _
+        FieldInfo:=Array(0, 4), TrailingMinusNumbers:=True
+        i = i + 1
+    Else
+        i = i + 1
+    End If
+Loop
+
+Sheets("Data1").Range(Sheets("Data1").Cells(2, "B"), Sheets("Data1").Cells(LastRow, nSetRng + 1)).Select
+Selection.Copy
+Sheets("Report").Activate
+Sheets("Report").Range(Sheets("Report").Cells(6, "A"), Sheets("Report").Cells(LastRow + 5, nSetRng)).Select
+Selection.Insert Shift:=xlDown
+
+With Selection.Borders
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+End With
+
+'Вызовем макрос для создания иерархического древа
+GroupFoldersByLevel
+'Вызовем макрос для покраски строк с ДСЕ, которые включают в себя ДСЕ или ПКИ или Материалы
+InteriorFormatTable
+
+'Создадим формулы для расчёта итогов
+Sheets("Report").Cells(1, 1) = LastRow
+Sheets("Report").Cells(LastRow + 5, "B").FormulaR1C1 = "=COUNTA(R[-" & LastRow - 1 & "]C[6]:R[-1]C[6])"
+' "=COUNTIF(R[-" & LastRow - 1 & "]C[6]:R[-1]C[6])"
+Sheets("Report").Cells(LastRow + 5, "E").FormulaR1C1 = "=MAX(R[-" & LastRow - 1 & "]C:R[-1]C)"
+Sheets("Report").Cells(LastRow + 6, "E").FormulaR1C1 = "=COUNTIF(R[-" & LastRow & "]C:R[-2]C,""<=""&R[-1]C)/COUNT(R[-" & LastRow & "]C:R[-2]C)"
+Sheets("Report").Cells(LastRow + 5, "F").FormulaR1C1 = "=MAX(R[-" & LastRow - 1 & "]C:R[-1]C)"
+Sheets("Report").Cells(LastRow + 6, "F").FormulaR1C1 = "=COUNTIF(R[-" & LastRow & "]C:R[-2]C,""<=""&R[-1]C)/R[-2]C[-4]"
+'Sheets("Report").Cells(LastRow + 6, "H").FormulaR1C1 = "=COUNTA(R[-" & LastRow & "]C:R[-2]C)/R[-1]C[-6]"
+Sheets("Report").Cells(LastRow + 6, "I").FormulaR1C1 = "=COUNTA(R[-" & LastRow & "]C:R[-2]C)/R[-1]C[-7]"
+'Sheets("Report").Cells(LastRow + 6, "H").FormulaR1C1 = "=COUNTA(R[-" & LastRow & "]C:R[-2]C)/R[-2]C[-5]"
+'Sheets("Report").Cells(LastRow + 6, "I").FormulaR1C1 = "=COUNTA(R[-" & LastRow & "]C:R[-2]C)/R[-2]C[-6]"
+Sheets("Report").Cells(LastRow + 5, "J").FormulaR1C1 = "=MAX(R[-" & LastRow - 1 & "]C:R[-1]C)"
+Sheets("Report").Cells(LastRow + 6, "J").FormulaR1C1 = "=COUNTIF(R[-" & LastRow & "]C:R[-2]C,""<=""&R[-1]C)/R[-2]C[-7]"
+Sheets("Report").Cells(LastRow + 5, "K").FormulaR1C1 = "=MAX(R[-" & LastRow - 1 & "]C:R[-1]C)"
+Sheets("Report").Cells(LastRow + 6, "K").FormulaR1C1 = "=COUNTIF(R[-" & LastRow & "]C:R[-2]C,""<=""&R[-1]C)/R[-2]C[-8]"
+Sheets("Report").Cells(LastRow + 5, "L").FormulaR1C1 = "=MAX(R[-" & LastRow - 1 & "]C:R[-1]C)"
+Sheets("Report").Cells(LastRow + 6, "L").FormulaR1C1 = "=COUNTIF(R[-" & LastRow & "]C:R[-2]C,""<=""&R[-1]C)/R[-2]C[-9]"
+Sheets("Report").Cells(LastRow + 5, "M").FormulaR1C1 = "=MAX(R[-" & LastRow - 1 & "]C:R[-1]C)"
+Sheets("Report").Cells(LastRow + 6, "M").FormulaR1C1 = "=COUNTIF(R[-" & LastRow & "]C:R[-2]C,""<=""&R[-1]C)/R[-2]C[-10]"
+Sheets("Report").Cells(LastRow + 5, "N").FormulaR1C1 = "=MAX(R[-" & LastRow - 1 & "]C:R[-1]C)"
+Sheets("Report").Cells(LastRow + 6, "N").FormulaR1C1 = "=COUNTIF(R[-" & LastRow & "]C:R[-2]C,""<=""&R[-1]C)/R[-2]C[-11]"
+Sheets("Report").Cells(LastRow + 5, "O").FormulaR1C1 = "=MAX(R[-" & LastRow - 1 & "]C:R[-1]C)"
+Sheets("Report").Cells(LastRow + 6, "O").FormulaR1C1 = "=COUNTIF(R[-" & LastRow & "]C:R[-2]C,""<=""&R[-1]C)/R[-1]C[-13]"
+
+Sheets("Report").Cells(LastRow + 6, "P").FormulaR1C1 = "=COUNTIF(R[-" & LastRow & "]C:R[-2]C,R[-" & LastRow + 3 & "]C[-12])/R[-1]C[-14]"
+Sheets("Report").Cells(LastRow + 7, "P").FormulaR1C1 = "=MIN(R[-" & LastRow + 1 & "]C:R[-3]C)"
+Sheets("Report").Cells(LastRow + 5, "V").FormulaR1C1 = "=MAX(R[-" & LastRow - 1 & "]C:R[-1]C)"
+
+Sheets("Report").Rows(LastRow + 6 & ":" & LastRow + 6).NumberFormat = "0.00%"
+
+'Уберём лишние данные
+Sheets("Data1").Delete
+Sheets("History").Delete
+'Sheets("Report").Columns("K:M").Delete Shift:=xlShiftToLeft
+Sheets("Report").Columns("J:N").Delete Shift:=xlShiftToLeft
+
+'Заблокируем редактирование
+        ActiveSheet.Protect Password:="METEX", DrawingObjects:=False, Contents:=True, Scenarios:= _
+        False, AllowFormattingCells:=True, AllowFormattingColumns:=True, _
+        AllowFormattingRows:=True, AllowInsertingColumns:=True, AllowInsertingRows _
+        :=True, AllowInsertingHyperlinks:=True, AllowDeletingColumns:=True, _
+        AllowDeletingRows:=True, AllowSorting:=True, AllowFiltering:=True, _
+        AllowUsingPivotTables:=True
+
+'Вернём экселю его функции
+Application.ScreenUpdating = True
+Application.EnableEvents = True
+ActiveSheet.DisplayPageBreaks = True
+Application.DisplayStatusBar = True
+Application.Calculation = xlCalculationAutomatic
+Application.CutCopyMode = False
+Application.DisplayAlerts = True
+End Sub
+
+
+Sub GroupFoldersByLevel()
+    Dim i As Long
+    Dim r As Range
+    Dim rStart As Range
+    Dim rEnd As Range
+    Dim foundStart As Boolean
+    Dim rngGroup As Range
+    Dim level As Long
+    Dim maxLevel As Long
+    Dim levelAtRow As Long
+    Dim indexColumn As Long
+    Dim fileFolderColumn As Long
+    Dim startRow As Long
+    Dim atEndRow As Boolean
+   
+    ' ----------------------
+    maxLevel = 7 'максимальный уровень разузлования
+    indexColumn = 1 'номер колонки с индексом уровня вхождения
+    'fileFolderColumn = 2
+    startRow = 6 'первая строка данных
+    ' ----------------------
+	
+	'С первого по макс. уровень найдем все вхождения на уровень и с группируем их
+    For level = 1 To maxLevel
+        DoEvents
+        Debug.Print "Processing level " & CStr(level) & "..."
+        
+        foundStart = False
+        For i = startRow To ActiveSheet.UsedRange.Rows.Count + 1
+            Set r = ActiveSheet.Rows(i)
+            atEndRow = (i = ActiveSheet.UsedRange.Rows.Count + 1)
+            
+            'levelAtRow = UBound(Split(CStr(r.Cells(indexColumn).Value), ".")) + 1
+            levelAtRow = r.Cells(indexColumn).Value
+            
+            If levelAtRow <= level Or atEndRow Then
+                If Not foundStart Then
+                    If levelAtRow = level Then
+                        Set rStart = r.Offset(1)
+                        foundStart = True
+                    End If
+                Else
+                    Set rEnd = r.Offset(-1)
+                    If Not rStart.Row > rEnd.Row Then
+                        Set rngGroup = Range(rStart, rEnd)
+                        rngGroup.Rows.Group
+                    End If
+                    'If levelAtRow = level And Trim$(LCase$(r.Cells(fileFolderColumn).Value)) = "folder" Then
+                    If levelAtRow = level Then
+                        Set rStart = r.Offset(1)
+                        foundStart = True
+                    Else
+                        foundStart = False
+                    End If
+                    'Exit Sub
+                End If
+            End If
+        Next i
+    Next level
+    
+    Debug.Print "done."
+End Sub
+
+Sub InteriorFormatTable()
+
+Dim r1 As Range, r2 As Range, r3 As Range, r4 As Range
+
+'Найдём все необходимые нам строки и собирём их адреса в массивы для покраски
+LastRow = Sheets("Report").Cells(Rows.Count, "A").End(xlUp).Row
+Set r1 = Range(Cells(6, "A"), Cells(LastRow, nSetRng - 1))
+Set r3 = Range(Cells(6, "A"), Cells(LastRow, nSetRng - 1))
+i = 0
+For i = 1 To r1.Rows.Count
+    If r1(i, 1).Value < r1(i + 1, 1).Value Then
+        If r2 Is Nothing Then
+            Set r2 = Range(Cells(i + 5, 1), Cells(i + 5, nSetRng - 1))
+        Else
+            Set r2 = Union(r2, Range(Cells(i + 5, 1), Cells(i + 5, nSetRng - 1)))
+        End If
+    End If
+    If Cells(i, nSetRng).Value = "1" Then
+        If r4 Is Nothing Then
+            Set r4 = Range(Cells(i + 5, 1), Cells(i + 5, nSetRng - 1))
+        Else
+            Set r4 = Union(r4, Range(Cells(i + 5, 1), Cells(i + 5, nSetRng - 1)))
+        End If
+    End If
+Next i
+
+r2.Interior.Color = RGB(245, 245, 153)
+If r4 Is Nothing Then
+    GoTo F1
+Else
+    r4.Interior.Color = RGB(167, 255, 99)
+End If
+F1:
+'Удалим столбец с флагом покраски ПКИ
+Sheets("Report").Columns(nSetRng).Delete Shift:=xlShiftToLeft
+'Sheets("Report").Columns(nSetRng - 1).Delete Shift:=xlShiftToLeft
+End Sub
+
+Function CountCellsByColor(rData As Range, cellRefColor As Range) As Long
+    Dim indRefColor As Long
+    Dim cellCurrent As Range
+    Dim cntRes As Long
+ 'Подсчёт не покрашенных ячеек
+    Application.Volatile
+    cntRes = 0
+    indRefColor = cellRefColor.Cells(1, 1).Interior.Color
+    For Each cellCurrent In rData
+        If indRefColor = cellCurrent.Interior.Color Then
+            cntRes = cntRes + 1
+        End If
+    Next cellCurrent
+ 
+    CountCellsByColor = cntRes
+End Function
+
+
+
+
